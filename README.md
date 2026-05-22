@@ -130,7 +130,10 @@ batch = build_revoke_batch(high_risk)
       "rawAllowance": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "humanAllowance": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "decimals": 6,
-      "lastApprovalBlock": 19283000
+      "lastApprovalBlock": 19283000,
+      "riskLevel": 3,
+      "riskLabel": "🔴 HIGH",
+      "isInfinite": true
     }
   ]
 }
@@ -179,6 +182,30 @@ export RPC_URL="https://eth.llamarpc.com"
 - **No private keys**: No wallet private keys or seed phrases are ever needed.
 - **No external dependencies**: Only Python standard library — minimal attack surface.
 - **Verify before revoking**: Always verify the `to` address and `data` in the revoke transaction before signing. The calldata should be `approve(spender, 0)`.
+
+## 🛠️ Development
+
+```bash
+git clone https://github.com/counterfactual5/erc20-checker.git
+cd erc20-checker
+
+# Install with dev deps
+uv pip install -e ".[dev]"
+
+# Run tests
+uv run pytest tests/ -v
+```
+
+## 🗺️ Roadmap
+
+- [x] Risk scoring (infinite + unknown spender detection)
+- [x] Revoke transaction builder
+- [x] Multi-chain support (5 chains via Etherscan v2)
+- [ ] CLI tool (`erc20-check` command)
+- [ ] Interactive HTML dashboard
+- [ ] Multi-wallet batch scanning
+- [ ] Gas estimation for revoke transactions
+- [ ] Discord / Telegram bot integration
 
 ## 📄 License
 
