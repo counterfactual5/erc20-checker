@@ -13,8 +13,6 @@ from erc20_checker.common import build_approve_calldata, validate_address
 def build_revoke_tx(
     token_address: str,
     spender: str,
-    *,
-    chain: str = "ethereum",
 ) -> dict[str, Any]:
     """Build a transaction to revoke an ERC20 approval (set allowance to 0).
 
@@ -24,8 +22,6 @@ def build_revoke_tx(
         ERC20 token contract address.
     spender : str
         Address whose allowance should be revoked.
-    chain : str
-        Chain key (for metadata only; the calldata is chain-agnostic).
 
     Returns
     -------

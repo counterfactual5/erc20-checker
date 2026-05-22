@@ -88,7 +88,7 @@ print(result["humanAllowance"])  # e.g. "115792089237316195423570985008687907853
 ### Risk Assessment
 
 ```python
-from erc20_checker.risk import risk_report, summary, RISK_LABELS, RiskLevel
+from erc20_checker.risk import risk_report, summary
 
 report = risk_report(result["approvals"])
 for entry in report:

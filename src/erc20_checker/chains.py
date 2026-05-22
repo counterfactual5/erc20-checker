@@ -15,6 +15,10 @@ class Chain:
     etherscan_url: str
 
 
+# All chains use the unified Etherscan v2 API endpoint.
+# The ``chainid`` parameter in requests routes to the correct network.
+# Note: free-tier API keys only support Ethereum (chainid=1).
+# For other chains, a paid Etherscan plan is required.
 CHAINS: dict[str, Chain] = {
     "ethereum": Chain(
         key="ethereum",
@@ -26,25 +30,25 @@ CHAINS: dict[str, Chain] = {
         key="base",
         chain_id=8453,
         native_symbol="ETH",
-        etherscan_url="https://api.basescan.org/v2/api",
+        etherscan_url="https://api.etherscan.io/v2/api",
     ),
     "arbitrum": Chain(
         key="arbitrum",
         chain_id=42161,
         native_symbol="ETH",
-        etherscan_url="https://api.arbiscan.io/v2/api",
+        etherscan_url="https://api.etherscan.io/v2/api",
     ),
     "optimism": Chain(
         key="optimism",
         chain_id=10,
         native_symbol="ETH",
-        etherscan_url="https://api-optimistic.etherscan.io/v2/api",
+        etherscan_url="https://api.etherscan.io/v2/api",
     ),
     "polygon": Chain(
         key="polygon",
         chain_id=137,
         native_symbol="MATIC",
-        etherscan_url="https://api.polygonscan.com/v2/api",
+        etherscan_url="https://api.etherscan.io/v2/api",
     ),
 }
 

@@ -99,31 +99,41 @@ class TestRisk:
         assert classify_risk(2**256 - 1) == RiskLevel.HIGH
         assert classify_risk(2**128) == RiskLevel.HIGH
 
-    def test_classify_finite(self):
-        assert classify_risk(1000) == RiskLevel.LOW
-        assert classify_risk(1) == RiskLevel.LOW
+    def test_classify_unknown_spender(self):
+        """spender not in KNOWN_SPENDERS → MEDIUM"""
+        assert classify_risk(1000, is_known_spender=False) == RiskLevel.MEDIUM
 
-    def test_risk_report(self):
+    def test_classify_known_spender(self):
+        """known spender with finite allowance → LOW"""
+        assert classify_risk(1000, is_known_spender=True) == RiskLevel.LOW
+        assert classify_risk(1, is_known_spender=True) == RiskLevel.LOW
+
+    def test_risk_report_with_known_and_unknown(self):
         approvals = [
-            {"rawAllowance": str(2**256 - 1)},
-            {"rawAllowance": "1000"},
+            {"rawAllowance": str(2**256 - 1), "spender": "0x" + "aa" * 20},
+            {"rawAllowance": "1000", "spender": "0x" + "bb" * 20},
+            # Uniswap V2 Router (known) → should be LOW
+            {"rawAllowance": "5000000", "spender": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"},
         ]
         report = risk_report(approvals)
-        assert len(report) == 2
-        assert report[0]["riskLevel"] == RiskLevel.HIGH.value
+        assert len(report) == 3
+        assert report[0]["riskLevel"] == RiskLevel.HIGH.value   # infinite
+        assert report[1]["riskLevel"] == RiskLevel.MEDIUM.value   # unknown
+        assert report[2]["riskLevel"] == RiskLevel.LOW.value     # known (Uniswap V2)
         assert report[0]["isInfinite"] is True
-        assert report[1]["riskLevel"] == RiskLevel.LOW.value
         assert report[1]["isInfinite"] is False
 
     def test_summary(self):
         report = [
             {"riskLevel": 3},
             {"riskLevel": 3},
+            {"riskLevel": 2},
             {"riskLevel": 1},
         ]
         s = summary(report)
-        assert s["total"] == 3
+        assert s["total"] == 4
         assert s["highRisk"] == 2
+        assert s["mediumRisk"] == 1
         assert s["lowRisk"] == 1
 
 
