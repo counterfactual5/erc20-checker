@@ -16,6 +16,23 @@
 
 ## ⚡ Quick Start
 
+### CLI (recommended)
+
+```bash
+pip install erc20-checker
+
+# Scan all approvals
+erc20-check scan ethereum 0xYourWalletAddress
+
+# Check a specific allowance
+erc20-check allowance ethereum 0xYourWallet 0xUSDC 0xSpender
+
+# Build revoke transactions for high-risk approvals
+erc20-check revoke ethereum 0xYourWalletAddress
+```
+
+### Python API
+
 ```python
 from erc20_checker.scanner import scan_approvals
 from erc20_checker.risk import risk_report, summary
