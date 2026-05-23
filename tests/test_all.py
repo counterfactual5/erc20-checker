@@ -8,12 +8,13 @@ from erc20_checker.common import (
     build_approve_calldata,
     decode_allowance_from_data,
     encode_topic_address,
+    estimate_transaction_gas,
     format_units,
     topic_address,
     validate_address,
 )
 from erc20_checker.risk import RiskLevel, classify_risk, risk_report, summary
-from erc20_checker.revoke import build_revoke_tx, build_revoke_batch
+from erc20_checker.revoke import build_revoke_tx, build_revoke_batch, estimate_revoke_gas
 from erc20_checker.allowance import query_allowance
 from erc20_checker.scanner import scan_approvals
 
@@ -157,6 +158,27 @@ class TestRevoke:
         batch = build_revoke_batch(approvals)
         assert len(batch) == 2
         assert all("revokeTx" in b for b in batch)
+
+    @patch("erc20_checker.revoke.estimate_transaction_gas")
+    def test_estimate_revoke_gas(self, mock_estimate):
+        mock_estimate.return_value = 50000
+        token = "0x" + "aa" * 20
+        spender = "0x" + "bb" * 20
+        gas = estimate_revoke_gas(token, spender, "http://localhost:8545")
+        assert gas == 50000
+        assert mock_estimate.called
+
+    @patch("erc20_checker.revoke.estimate_transaction_gas")
+    def test_estimate_revoke_gas_with_from(self, mock_estimate):
+        mock_estimate.return_value = 45000
+        token = "0x" + "aa" * 20
+        spender = "0x" + "bb" * 20
+        sender = "0x" + "cc" * 20
+        gas = estimate_revoke_gas(token, spender, "http://localhost:8545", from_address=sender)
+        assert gas == 45000
+        # Verify from_address was passed to the tx
+        call_args = mock_estimate.call_args[0]
+        assert call_args[0].get("from") == sender
 
 
 # ── allowance (mocked RPC) ──────────────────────────────────────────────────

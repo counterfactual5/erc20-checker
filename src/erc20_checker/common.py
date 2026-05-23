@@ -117,6 +117,33 @@ def get_block_number(rpc_url: str) -> int:
     return _decode_int(result)
 
 
+def estimate_transaction_gas(tx: dict[str, str], rpc_url: str) -> int:
+    """Estimate gas for a transaction via eth_estimateGas.
+
+    Parameters
+    ----------
+    tx : dict
+        Transaction object with ``to``, ``data``, and optionally ``from``, ``value``.
+    rpc_url : str
+        RPC endpoint URL.
+
+    Returns
+    -------
+    int
+        Estimated gas units.
+    """
+    params: dict[str, str] = {
+        "to": tx["to"],
+        "data": tx.get("data", "0x"),
+    }
+    if tx.get("from"):
+        params["from"] = tx["from"]
+    if tx.get("value"):
+        params["value"] = tx["value"]
+    result = _json_rpc("eth_estimateGas", [params], rpc_url)
+    return _decode_int(result)
+
+
 def query_erc20_allowance(token: str, owner: str, spender: str, rpc_url: str) -> int:
     """Query ERC-20 allowance via eth_call."""
     data = _SEL_ALLOWANCE + _encode_address(owner) + _encode_address(spender)

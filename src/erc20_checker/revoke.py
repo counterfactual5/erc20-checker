@@ -1,13 +1,14 @@
 """Build revoke transactions for ERC20 approvals.
 
-Returns unsigned transaction data (to, data, value) — no signing or broadcasting.
+Returns unsigned transaction data (to, data, value) and optional gas estimates
+— no signing or broadcasting.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from erc20_checker.common import build_approve_calldata, validate_address
+from erc20_checker.common import build_approve_calldata, estimate_transaction_gas, validate_address
 
 
 def build_revoke_tx(
@@ -61,3 +62,38 @@ def build_revoke_batch(
             "revokeTx": tx,
         })
     return results
+
+
+def estimate_revoke_gas(
+    token_address: str,
+    spender: str,
+    rpc_url: str,
+    *,
+    from_address: str | None = None,
+) -> int:
+    """Estimate the gas cost of a revoke transaction.
+
+    Calls ``eth_estimateGas`` on the RPC endpoint.  The result may vary
+    depending on whether the spender is a simple EOA or a contract that
+    needs extra computation on 0-value approve calls.
+
+    Parameters
+    ----------
+    token_address : str
+        ERC20 token contract address.
+    spender : str
+        Address whose allowance should be revoked.
+    rpc_url : str
+        RPC endpoint URL.
+    from_address : str | None
+        Optional sender address for more accurate estimation.
+
+    Returns
+    -------
+    int
+        Estimated gas units.
+    """
+    tx = build_revoke_tx(token_address, spender)
+    if from_address:
+        tx["from"] = validate_address(from_address, "from")
+    return estimate_transaction_gas(tx, rpc_url)

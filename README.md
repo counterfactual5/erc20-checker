@@ -221,7 +221,7 @@ uv run pytest tests/ -v
 - [x] CLI tool (`erc20-check scan/allowance/revoke`)
 - [ ] Interactive HTML dashboard
 - [ ] Multi-wallet batch scanning
-- [ ] Gas estimation for revoke transactions
+- [x] Gas estimation for revoke transactions
 - [ ] Discord / Telegram bot integration
 
 ## 📄 License
