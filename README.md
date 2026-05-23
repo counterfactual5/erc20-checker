@@ -218,7 +218,7 @@ uv run pytest tests/ -v
 - [x] Risk scoring (infinite + unknown spender detection)
 - [x] Revoke transaction builder
 - [x] Multi-chain support (5 chains via Etherscan v2)
-- [ ] CLI tool (`erc20-check` command)
+- [x] CLI tool (`erc20-check scan/allowance/revoke`)
 - [ ] Interactive HTML dashboard
 - [ ] Multi-wallet batch scanning
 - [ ] Gas estimation for revoke transactions
