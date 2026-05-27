@@ -13,7 +13,7 @@ import urllib.request
 from decimal import Decimal
 from typing import Any
 
-from erc20_checker.chains import CHAIN_BY_ID, Chain, normalize_chain
+from erc20_checker.chains import CHAIN_BY_ID
 
 # ── Address validation ────────────────────────────────────────────────────
 
