@@ -163,17 +163,46 @@ def query_token_symbol(token: str, rpc_url: str) -> str | None:
         raw = eth_call(token, _SEL_SYMBOL, rpc_url)
     except RuntimeError:
         return None
-    return _decode_string(raw)
+    return _decode_string(raw) or _decode_bytes32(raw) or None
 
 
 def _decode_string(hex_val: str) -> str:
-    """Decode a dynamic ABI string from hex."""
+    """Decode a dynamic ABI string from hex.
+
+    Returns ``""`` when ``hex_val`` is not a valid dynamic string encoding
+    (e.g. legacy tokens that return ``bytes32`` — handled by
+    :func:`_decode_bytes32`).
+    """
     clean = hex_val.replace("0x", "")
     if len(clean) < 128:
         return ""
     length = int(clean[64:128], 16)
+    if length == 0 or length > 1024:
+        return ""
     hex_str = clean[128 : 128 + length * 2]
-    return bytes.fromhex(hex_str).decode("utf-8", errors="replace")
+    if len(hex_str) < length * 2:
+        return ""
+    try:
+        return bytes.fromhex(hex_str).decode("utf-8", errors="replace").strip("\x00")
+    except ValueError:
+        return ""
+
+
+def _decode_bytes32(hex_val: str) -> str:
+    """Fallback decoder for legacy tokens whose ``symbol()`` returns ``bytes32``.
+
+    Examples: MKR, SAI, and other early tokens. The value is 32 bytes
+    null-padded on the right; we strip nulls and decode as UTF-8.
+    """
+    clean = hex_val.replace("0x", "")
+    if len(clean) < 64:
+        return ""
+    head = clean[:64]
+    try:
+        decoded = bytes.fromhex(head).decode("utf-8", errors="replace").rstrip("\x00").strip()
+    except ValueError:
+        return ""
+    return decoded or ""
 
 
 # ── Etherscan API ─────────────────────────────────────────────────────────

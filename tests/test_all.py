@@ -228,4 +228,70 @@ class TestScanner:
 
 class TestPackage:
     def test_version(self):
-        assert erc20_checker.__version__ == "0.1.0"
+        # Mirror the version declared in `pyproject.toml` / package metadata.
+        assert erc20_checker.__version__ == "0.1.1"
+
+
+class TestIncludeZero:
+    """Regression: ``--include-zero`` should surface zero-allowance entries.
+
+    Previously the ``allowance < min_allowance_raw`` check fired first and
+    silently dropped zero allowances even when ``include_zero=True``.
+    """
+
+    @patch("erc20_checker.scanner.query_token_symbol")
+    @patch("erc20_checker.scanner.query_token_decimals")
+    @patch("erc20_checker.scanner.query_erc20_allowance")
+    @patch("erc20_checker.scanner.get_block_number")
+    @patch("erc20_checker.scanner.etherscan_request")
+    @patch("erc20_checker.scanner.require_etherscan_api_key")
+    @patch("erc20_checker.scanner.resolve_rpc_url")
+    def test_include_zero_surfaces_zero_allowances(self, mock_rpc, mock_key, mock_eth, mock_block, mock_allow, mock_dec, mock_sym):
+        mock_rpc.return_value = ("http://localhost:8545", [])
+        mock_key.return_value = "fake-key"
+        mock_block.return_value = 100
+        mock_eth.return_value = {
+            "result": [
+                {
+                    "address": "0x" + "11" * 20,
+                    "topics": [
+                        "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+                        "0x" + "00" * 12 + "aa" * 20,
+                        "0x" + "00" * 12 + "bb" * 20,
+                    ],
+                    "data": "0x" + "00" * 32,
+                    "blockNumber": "0x10",
+                    "logIndex": "0x0",
+                }
+            ]
+        }
+        mock_allow.return_value = 0
+        mock_dec.return_value = 6
+        mock_sym.return_value = "USDC"
+
+        from erc20_checker.scanner import scan_approvals
+
+        without_zero = scan_approvals("ethereum", "0x" + "aa" * 20)
+        assert without_zero["approvalCount"] == 0
+
+        with_zero = scan_approvals("ethereum", "0x" + "aa" * 20, include_zero=True)
+        assert with_zero["approvalCount"] == 1
+        assert with_zero["approvals"][0]["rawAllowance"] == "0"
+
+
+class TestSymbolBytes32:
+    """Regression: legacy tokens returning ``bytes32`` symbols must not be empty."""
+
+    def test_decode_bytes32_strips_nulls(self):
+        from erc20_checker.common import _decode_bytes32
+
+        # "MKR" padded to 32 bytes
+        raw = "0x" + b"MKR".hex() + "00" * 29
+        assert _decode_bytes32(raw) == "MKR"
+
+    def test_decode_string_empty_returns_blank(self):
+        from erc20_checker.common import _decode_string
+
+        # Less than 128 hex chars (a bytes32-style response) decodes to ""
+        # so the caller can fall back to bytes32 decoding.
+        assert _decode_string("0x" + "ab" * 32) == ""

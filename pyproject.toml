@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "erc20-checker"
-version = "0.1.1"
+version = "0.1.2"
 description = "Scan ERC20 approvals, assess risk, and build revoke transactions — zero dependencies"
 readme = "README.md"
 license = {text = "MIT"}

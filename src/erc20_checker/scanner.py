@@ -183,9 +183,13 @@ def scan_approvals(
         symbol = query_token_symbol(token_address, rpc) or token_address
         allowance = query_erc20_allowance(token_address, wallet_addr, spender, rpc)
 
-        if allowance < min_allowance_raw:
-            continue
-        if allowance == 0 and not include_zero:
+        # --include-zero overrides the min_allowance_raw filter for zero
+        # allowances; otherwise apply the threshold (which is >= 1 by default
+        # and therefore also excludes zero allowances).
+        if allowance == 0:
+            if not include_zero:
+                continue
+        elif allowance < min_allowance_raw:
             continue
 
         entries.append({

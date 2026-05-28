@@ -131,7 +131,7 @@ toml = [
 
 [[package]]
 name = "erc20-checker"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 
 [package.optional-dependencies]
